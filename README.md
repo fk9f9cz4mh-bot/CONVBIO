@@ -1,6 +1,6 @@
 # ConsBio Recall
 
-A study site for Conservation Biology Lectures 2–6. Each lecture has high-yield notes condensed from the posted slides and an active recall exam at the end.
+A study site for Conservation Biology Lectures 2–6. Lectures 7–10 have their own site in [`lectures-7-10/`](lectures-7-10/README.md). Each lecture has high-yield notes condensed from the posted slides and an active recall exam at the end.
 
 | Lecture | Topic |
 |---|---|
