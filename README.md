@@ -15,7 +15,7 @@ A study site for Conservation Biology Lectures 2–6. Lectures 7–10 have their
 - **Notes.** Each lecture opens with the instructor's "know this" and "not on the test" flags from the slides, then the high-yield content section by section, with tables and diagrams.
 - **Quick recall.** Every section ends with prompts to answer from memory before revealing.
 - **Exams.** 113 questions in total: multiple choice, Shannon-index and species–area calculations, and free-recall questions graded against a key-point checklist. Notes are hidden while you test.
-- **Confidence rating.** For multiple choice and calculations you mark Sure, Unsure or Guessing. Confident mistakes and correct guesses are flagged for review.
+- **Confidence rating (optional).** Pick an answer and press Submit answer; tapping Sure, Unsure or Guessing first is optional. When you rate, confident mistakes and correct guesses are flagged for review.
 - **Gap map.** Every topic gets an IUCN-style status (LC → CR, or NE if untested) from your latest answers. Results link back to the weak sections, and you can retry only the flagged questions.
 - **Mixed exams.** A balanced exam draws 5 questions per lecture. A gap-targeted exam draws the 20 questions you're weakest on.
 

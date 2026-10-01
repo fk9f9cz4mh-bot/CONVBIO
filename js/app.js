@@ -178,7 +178,7 @@
     html += '<section class="block how"><h2>How to use this</h2><ol class="steps">' +
       '<li><strong>Read one lecture’s notes.</strong> They are condensed from the slides, with the instructor’s “know this” and “not on the test” flags at the top.</li>' +
       '<li><strong>Answer the quick-recall prompts in your head</strong> before tapping to reveal. Retrieval, not rereading, is what builds memory.</li>' +
-      '<li><strong>Take the exam with the notes hidden.</strong> Rate how sure you are on each answer, so lucky guesses and confident mistakes get flagged.</li>' +
+      '<li><strong>Take the exam with the notes hidden.</strong> Pick an answer, submit, and go to the next question. Optionally rate how sure you are first, so lucky guesses and confident mistakes get flagged.</li>' +
       '<li><strong>Work the gaps.</strong> Follow the links from your results to the weak sections, then retry only the flagged questions. Come back in a day or two and take the gap-targeted exam.</li>' +
       '</ol></section>';
 
@@ -314,9 +314,9 @@
       '<h2>Close the book. What do you actually remember?</h2>' +
       '<p>' + l.exam.length + ' questions in random order: ' + typeSummary(l.exam) + '. The notes above are hidden while you work. After each answer you’ll see the correct answer and why; at the end, every topic gets a status and a link back to its notes.</p>' +
       '<ul class="exam-rules">' +
-      '<li><strong>Multiple choice and calculations:</strong> pick an answer and say how sure you are. Confident mistakes and lucky guesses are flagged for review.</li>' +
+      '<li><strong>Multiple choice and calculations:</strong> pick an answer, press <strong>Submit answer</strong> to see if you’re right, then <strong>Next question</strong>. Tapping Sure, Unsure or Guessing before you submit is optional, but it lets the results flag confident mistakes and lucky guesses.</li>' +
       '<li><strong>Free recall:</strong> type everything you remember, then tick the key points your answer covered.</li>' +
-      '<li><strong>Keyboard:</strong> 1–5 picks an option, S / U / G sets sure, unsure or guessing, Enter checks and moves on.</li>' +
+      '<li><strong>Keyboard:</strong> 1–5 picks an option, S / U / G sets sure, unsure or guessing, Enter submits and then moves on.</li>' +
       '</ul>' +
       (ex ? '<p class="muted">Last attempt ' + pct(ex.last) + ' · best ' + pct(ex.best) + '</p>' : '') +
       '<button type="button" class="btn primary big" data-act="start">Start the exam</button>' +
@@ -421,10 +421,10 @@
         body += '<div class="opts" role="radiogroup" aria-label="Answer options">' + it.order.map(function (oi, k) {
           return '<button type="button" class="opt" role="radio" aria-checked="false" data-k="' + k + '"><span class="opt-key">' + LETTERS[k] + '</span><span class="opt-text">' + q.o[oi] + '</span></button>';
         }).join('') + '</div>' + confHtml();
-        body += '<div class="q-actions"><button type="button" class="btn primary" data-act="check" disabled>Check answer</button><span class="q-hint muted" data-hint>Pick an answer and how sure you are</span></div>';
+        body += '<div class="q-actions"><button type="button" class="btn primary" data-act="check" disabled>Submit answer</button><span class="q-hint muted" data-hint>Pick an answer, then submit</span></div>';
       } else if (q.t === 'num') {
         body += '<div class="num-row"><label for="num-' + q.id + '">Your answer</label><input type="text" inputmode="decimal" autocomplete="off" id="num-' + q.id + '" placeholder="e.g. 0.42">' + (q.unit ? '<span class="unit">' + q.unit + '</span>' : '') + '</div>' + confHtml();
-        body += '<div class="q-actions"><button type="button" class="btn primary" data-act="check" disabled>Check answer</button><span class="q-hint muted" data-hint>Enter a number and how sure you are</span></div>';
+        body += '<div class="q-actions"><button type="button" class="btn primary" data-act="check" disabled>Submit answer</button><span class="q-hint muted" data-hint>Enter a number, then submit</span></div>';
       } else {
         body += '<label class="sr-only" for="ans-' + q.id + '">Your answer</label><textarea id="ans-' + q.id + '" rows="5" placeholder="Write everything you can remember before you look at the key."></textarea>';
         body += '<div class="q-actions"><button type="button" class="btn primary" data-act="reveal" disabled>Compare with the key</button><button type="button" class="btn ghost" data-act="idk">I don’t know yet, show me</button></div>';
@@ -441,7 +441,7 @@
     }
 
     function confHtml() {
-      return '<div class="conf" role="radiogroup" aria-label="How sure are you?"><span class="conf-l">How sure are you?</span>' +
+      return '<div class="conf" role="radiogroup" aria-label="How sure are you? (optional)"><span class="conf-l">How sure are you? <span class="muted">(optional)</span></span>' +
         ['sure', 'unsure', 'guess'].map(function (c) {
           return '<button type="button" class="chip" role="radio" aria-checked="false" data-c="' + c + '">' + CONF_LABEL[c] + '</button>';
         }).join('') + '</div>';
@@ -452,7 +452,7 @@
       if (!btn) return;
       var q = items[i].q;
       var hasAns = q.t === 'mc' ? ui.sel !== null : (host.querySelector('input').value.trim() !== '');
-      btn.disabled = !(hasAns && ui.conf);
+      btn.disabled = !hasAns;
       var hint = host.querySelector('[data-hint]');
       if (hint) hint.hidden = !btn.disabled;
     }
@@ -493,7 +493,7 @@
       var ta = host.querySelector('textarea');
       if (ta) {
         var rev = host.querySelector('[data-act="reveal"]');
-        ta.addEventListener('input', function () { rev.disabled = ta.value.trim().length < 3; });
+        ta.addEventListener('input', function () { rev.disabled = ta.value.trim().length < 1; });
         rev.addEventListener('click', function () { doReveal(it, false); });
         host.querySelector('[data-act="idk"]').addEventListener('click', function () { doReveal(it, true); });
       }
@@ -537,7 +537,8 @@
       host.querySelectorAll('.chip[data-c]').forEach(function (b) { b.disabled = true; });
       host.querySelector('[data-act="check"]').parentNode.hidden = true;
       ui.done = true;
-      var flag = correct ? (ui.conf === 'sure' ? null : 'lucky') : (ui.conf === 'sure' ? 'misconception' : 'missed');
+      // confidence is optional: an unrated right answer counts as sure, an unrated wrong one as a plain miss
+      var flag = correct ? (ui.conf === 'unsure' || ui.conf === 'guess' ? 'lucky' : null) : (ui.conf === 'sure' ? 'misconception' : 'missed');
       record(it, correct ? 1 : 0, ui.conf, flag, response);
       var answerText = q.t === 'mc' ? q.o[q.a] : String(q.a) + (q.unit || '');
       var head = correct ? (flag === 'lucky' ? 'Correct, though you weren’t sure' : 'Correct') : (flag === 'misconception' ? 'Not quite, and you were sure. Worth a close look.' : 'Not quite');
